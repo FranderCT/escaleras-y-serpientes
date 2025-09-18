@@ -1,8 +1,15 @@
 // src/components/StartGameOptions.tsx
+import { useNavigate } from "@tanstack/react-router";
 import ButtonOptions from "./ButtonOptions";
 import { Trophy, PlusCircle, Search } from "lucide-react";
 
 const StartGameOptions = () => {
+const navigate = useNavigate();
+
+const goRoom = () =>{
+  navigate({to : '/lobby'})
+}
+
   return (
     <div className="w-full flex flex-wrap gap-3 sm:gap-4 items-center justify-center">
       <ButtonOptions
@@ -16,7 +23,7 @@ const StartGameOptions = () => {
       </ButtonOptions>
 
       <ButtonOptions
-        onClick={() => console.log("Crear sala")}
+        onClick={goRoom}
         leftIcon={<PlusCircle className="w-5 h-5" />}
         variant="primary"
         size="lg"
