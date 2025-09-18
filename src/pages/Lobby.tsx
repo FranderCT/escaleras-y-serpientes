@@ -1,6 +1,9 @@
 import TopGlobals from "../components/Lobby/TopGlobals";
 import type { Player } from "../models/Player";
 import binariosFoto from "../assets/binariosFoto.png";
+import PlayerHost from "../components/Lobby/RoomInfo/PlayerHost";
+import RoomCode from "../components/Lobby/RoomInfo/RoomCode";
+import type { Room } from "../models/Room";
 
 const playersData: Player[] = [
   { Id: 1, NamePlayer: "Frander", TurnOrder: 1, Position: 5, Wins: 3 },
@@ -10,16 +13,24 @@ const playersData: Player[] = [
   { Id: 5, NamePlayer: "Katherine", TurnOrder: 5, Position: 8, Wins: 4 },
 ];
 
+const playerhost: Player = { Id: 1, NamePlayer: "Frander", TurnOrder: 1, Position: 5, Wins: 3 };
+
+const roomCode : Room = {IdRoom: 1, Code: "ABC-123"}
+
 export default function Lobby() {
   return (
-    <main className="min-h-screen bg-[#222] text-white flex items-center justify-center">
-      <div className="mx-auto w-full max-w-5xl px-4 md:px-6 lg:px-8 py-8">
-        
+    <main className="min-h-screen bg-[#0e0f13] text-white flex items-center justify-center">
+      <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+        {/* Header (igual línea visual que StartGame) */}
+        <header className="text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Lobby</h1>
+          <p className="text-white/70 mt-2">Gestiona tu sala y revisa el ranking</p>
+        </header>
 
-        {/* Contenedor principal con flex */}
-        <section className="flex flex-row">
+        {/* Imagen + Ranking (flex responsive) */}
+        <section className="flex flex-col md:flex-row gap-6">
           {/* Imagen */}
-          <div className="flex-1 rounded-lg flex items-center justify-center">
+          <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 shadow-2xl shadow-indigo-900/10 flex items-center justify-center">
             <img
               src={binariosFoto}
               alt="Binarios"
@@ -28,13 +39,19 @@ export default function Lobby() {
             />
           </div>
 
-          {/* Ranking */}
-          <div className="flex-1 rounded-lg  p-4">
+          {/* Ranking (mismo look de tarjetas StartGame) */}
+          <div className="flex-1 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent p-4 sm:p-6 shadow-2xl shadow-indigo-900/10">
             <TopGlobals players={playersData} maxItems={10} />
           </div>
         </section>
 
-       
+        
+        {/* Info de la sala / Host */}
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 shadow-2xl shadow-indigo-900/10 flex flex-col md:flex-row items-center justify-between gap-4">
+            <PlayerHost player={playerhost} />
+            <RoomCode room={roomCode} />
+        </section>
+
       </div>
     </main>
   );

@@ -11,7 +11,7 @@ export default function TopGlobals({ players, maxItems = 10 }: Props) {
   const ordered = [...players].sort((a, b) => b.Wins - a.Wins).slice(0, maxItems);
 
   return (
-    <div className="w-full rounded-lg border border-white/10 bg-[#1b1c22] p-4 text-white">
+    <div className="w-full rounded-lg    p-4 text-white">
       <h2 className="text-xl font-semibold text-center text-white/90">🏆 Top Jugadores</h2>
 
       {/* alto fijo con scroll; suficiente para laptops 1366/1440/1080 */}
