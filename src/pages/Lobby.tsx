@@ -21,12 +21,7 @@ export default function Lobby() {
   return (
     <main className="min-h-screen bg-[#0e0f13] text-white flex items-center justify-center">
       <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
-        {/* Header (igual línea visual que StartGame) */}
-        <header className="text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Lobby</h1>
-          <p className="text-white/70 mt-2">Gestiona tu sala y revisa el ranking</p>
-        </header>
-
+       
         {/* Imagen + Ranking (flex responsive) */}
         <section className="flex flex-col md:flex-row gap-6">
           {/* Imagen */}
@@ -40,7 +35,7 @@ export default function Lobby() {
           </div>
 
           {/* Ranking (mismo look de tarjetas StartGame) */}
-          <div className="flex-1 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent p-4 sm:p-6 shadow-2xl shadow-indigo-900/10">
+          <div className="flex-1 rounded-2xl border border-white/10 bg-white/5  to-transparent p-4 sm:p-6 shadow-2xl shadow-indigo-900/10">
             <TopGlobals players={playersData} maxItems={10} />
           </div>
         </section>
