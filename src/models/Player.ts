@@ -9,7 +9,7 @@ export interface Player1{
 
 export interface Player{
     Id : number;
-    Name : string;
+    name : string;
     TurnOrder: number;
     Position: number;
     Wins : number;
@@ -19,7 +19,7 @@ export type PartialPlayer = Partial<Player>;
 
 export const newPlayerInitialState: PartialPlayer = {
   Id: 0,
-  Name: "",
+  name: "",
   TurnOrder: 1,
   Position: 0,
   Wins: 0,

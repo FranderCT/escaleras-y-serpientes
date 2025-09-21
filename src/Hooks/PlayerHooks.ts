@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createPlayer, getPlayer } from "../Services/PlayerServices";
+import type { Player } from "../models/Player";
 
 export const useCreatePlayer = () =>{
     const qc = useQueryClient();
@@ -21,9 +22,9 @@ export const useCreatePlayer = () =>{
 }
 
 export const useGetPlayer = () => {
-    const {data: UserPlayer, isLoading, error} = useQuery({
-        queryKey: ['player'],
-        queryFn: () => getPlayer()
+    const {data: UserPlayer, isLoading, error} = useQuery<Player>({
+        queryKey: ["player", "me"],
+        queryFn: ()=> getPlayer()
     });
     return { UserPlayer, isLoading, error };
 }

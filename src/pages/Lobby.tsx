@@ -14,7 +14,7 @@ const playersData: Player1[] = [
   { Id: 5, NamePlayer: "Katherine", TurnOrder: 5, Position: 8, Wins: 4 },
 ];
 
-const playerhost: Player = { Id: 1, Name: "Frander", TurnOrder: 1, Position: 5, Wins: 3 };
+const playerhost: Player = { Id: 1, name: "Frander", TurnOrder: 1, Position: 5, Wins: 3 };
 
 const roomCode : Room = {IdRoom: 1, Code: "ABC-123"}
 
