@@ -14,12 +14,12 @@ type Props = {
 export default function RoomJoinModal({ open, onClose, onJoined }: Props) {
   const joinMutation = useJoinRoom();
 
-  // 👇 Tipado explícito del formulario
+  
   const form = useForm({
     defaultValues: { code: "" },
     onSubmit: async ({ value }) => {
       const raw = (value.code ?? "").trim();
-      const codeNum = Number(raw); // si tu API espera string, envía { code: raw }
+      const codeNum = Number(raw); 
       const res = await joinMutation.mutateAsync({ code: codeNum });
       console.log(value.code)
       onJoined?.(res);
