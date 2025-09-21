@@ -1,16 +1,16 @@
 import StartGameOptions from "../components/StartGame/StartGameOptions";
 import StartGamePlayerName from "../components/StartGame/StartGamePlayerName";
-import type { Player } from "../models/Player";
-
-const playerData: Player = {
-  Id: 1,
-  NamePlayer: "Frander",
-  TurnOrder: 1,
-  Position: 0, // inicio
-  Wins: 0,     // inicial
-};
+import { useGetPlayer } from "../Hooks/PlayerHooks";
+// const playerData: Player = {
+//   Id: 1,
+//   NamePlayer: "Frander",
+//   TurnOrder: 1,
+//   Position: 0, // inicio
+//   Wins: 0,     // inicial
+// };
 
 const StartGame = () => {
+  const {UserPlayer} = useGetPlayer();
   return (
     <main className="min-h-screen bg-[#0e0f13] text-white flex items-center justify-center">
       <div className="w-full max-w-3xl p-6 sm:p-8 flex flex-col gap-6">
@@ -29,7 +29,7 @@ const StartGame = () => {
 
         {/* Bienvenida del jugador */}
         <section className="">
-          <StartGamePlayerName player={playerData} />
+          <StartGamePlayerName player={UserPlayer} />
         </section>
         
       </div>

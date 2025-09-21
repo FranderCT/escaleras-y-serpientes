@@ -1,7 +1,7 @@
 import { createRootRoute, createRoute } from "@tanstack/react-router";
-import StartGame from "./pages/StartGame";
 import Lobby from "./pages/Lobby";
 import AuthPlayer from "./pages/AuthPlayer";
+import StartGame from "./pages/StartGame";
 
 export const rootRoute = createRootRoute();
 

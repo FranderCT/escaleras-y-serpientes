@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { createPlayer } from "../Services/PlayerServices";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { createPlayer, getPlayer } from "../Services/PlayerServices";
 
 export const useCreatePlayer = () =>{
     const qc = useQueryClient();
@@ -9,7 +9,8 @@ export const useCreatePlayer = () =>{
         mutationFn : createPlayer,
         onSuccess: (res) =>{
             console.log('Player Registrado', res);
-            qc.invalidateQueries({queryKey: ['player']})
+            qc.invalidateQueries({queryKey: ['player']});
+            localStorage.setItem('token', res.token);
         },
         onError : (err) =>{
             console.error(err)
@@ -17,4 +18,12 @@ export const useCreatePlayer = () =>{
     })
 
     return mutation;
+}
+
+export const useGetPlayer = () => {
+    const {data: UserPlayer, isLoading, error} = useQuery({
+        queryKey: ['player'],
+        queryFn: () => getPlayer()
+    });
+    return { UserPlayer, isLoading, error };
 }
