@@ -1,9 +1,9 @@
 // src/components/Lobby/ListPlayers.tsx
-import type { Player } from "../../models/Player";
+import type {  Player1 } from "../../models/Player";
 import { User } from "lucide-react"; // icono simple de usuario
 
 type Props = {
-  players: Player[];
+  players: Player1[];
  
 };
 

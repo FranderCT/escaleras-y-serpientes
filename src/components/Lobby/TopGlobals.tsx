@@ -1,9 +1,9 @@
 // src/components/Lobby/TopGlobals.tsx
-import type { Player } from "../../models/Player";
+import type { Player, Player1 } from "../../models/Player";
 import { Trophy } from "lucide-react";
 
 type Props = {
-  players: Player[];
+  players: Player1[];
   maxItems?: number; // opcional: limitar cuantos muestra
 };
 

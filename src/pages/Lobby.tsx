@@ -1,12 +1,12 @@
 import TopGlobals from "../components/Lobby/TopGlobals";
-import type { Player } from "../models/Player";
+import type { Player, Player1 } from "../models/Player";
 import binariosFoto from "../assets/binariosFoto.png";
 import PlayerHost from "../components/Lobby/RoomInfo/PlayerHost";
 import RoomCode from "../components/Lobby/RoomInfo/RoomCode";
 import type { Room } from "../models/Room";
 import ListPlayers from "../components/ListPlayers/ListPlayers";
 
-const playersData: Player[] = [
+const playersData: Player1[] = [
   { Id: 1, NamePlayer: "Frander", TurnOrder: 1, Position: 5, Wins: 3 },
   { Id: 2, NamePlayer: "Brenda", TurnOrder: 2, Position: 10, Wins: 5 },
   { Id: 3, NamePlayer: "Luis", TurnOrder: 3, Position: 2, Wins: 1 },
@@ -14,11 +14,11 @@ const playersData: Player[] = [
   { Id: 5, NamePlayer: "Katherine", TurnOrder: 5, Position: 8, Wins: 4 },
 ];
 
-const playerhost: Player = { Id: 1, NamePlayer: "Frander", TurnOrder: 1, Position: 5, Wins: 3 };
+const playerhost: Player = { Id: 1, Name: "Frander", TurnOrder: 1, Position: 5, Wins: 3 };
 
 const roomCode : Room = {IdRoom: 1, Code: "ABC-123"}
 
-const playerssData: Player[] = [
+const playerssData: Player1[] = [
   { Id: 1, NamePlayer: "Frander", Wins: 3 },
   { Id: 2, NamePlayer: "Brenda",  Wins: 5 },
   { Id: 3, NamePlayer: "Luis",    Wins: 1 },
