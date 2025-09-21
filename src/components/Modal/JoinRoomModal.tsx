@@ -4,7 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import Modal from "./Modal";
 import ButtonOptions from "../StartGame/ButtonOptions";
 import { useJoinRooms } from "../../Hooks/RoomHooks";
-import { ensureStarted, joinSignalRGroup } from "../../signalRConnection";
+import { ensureStarted } from "../../signalRConnection";
 import { useGetPlayer } from "../../Hooks/PlayerHooks";
 
 type Props = {
