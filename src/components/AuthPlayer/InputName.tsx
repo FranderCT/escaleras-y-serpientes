@@ -9,7 +9,7 @@ const InputName = () => {
   const navigate = useNavigate();
 
   const form = useForm({
-    defaultValues: newPlayerInitialState, // ✅ sin llaves extra
+    defaultValues: newPlayerInitialState,
     onSubmit: async ({ value }) => {
       try {
         await createPlayerMutation.mutateAsync(value);
@@ -30,7 +30,7 @@ const InputName = () => {
         className="flex flex-col gap-4"
       >
         {/* Card de input al estilo ListPlayers */}
-        <form.Field name="Name">
+        <form.Field name="name">
           {(field) => (
             <label className="flex items-center gap-3 rounded-lg bg-[#22232b] px-4 py-3 shadow-md ring-1 ring-white/10">
               <User className="h-5 w-5 text-indigo-400" />
