@@ -1,7 +1,7 @@
 import { createRootRoute, createRoute } from "@tanstack/react-router";
-import Lobby from "./pages/Lobby";
 import AuthPlayer from "./pages/AuthPlayer";
 import StartGame from "./pages/StartGame";
+import Room from "./pages/Room";
 
 export const rootRoute = createRootRoute();
 
@@ -11,11 +11,17 @@ export const indexRoute = createRoute({
     component: StartGame,
 });
 
-export const lobbyRoute = createRoute({
+export const roomRoute = createRoute({
     getParentRoute: () => rootRoute,
-    path : 'lobby',
-    component: Lobby
+    path : 'room',
 })
+
+export const roomByCodeRoute = createRoute({
+    getParentRoute: () => roomRoute,
+    path : '/$code',
+    component: Room
+})
+
 
 export const authPlayerRoute = createRoute({
     getParentRoute : () =>rootRoute,
@@ -25,6 +31,6 @@ export const authPlayerRoute = createRoute({
 
 export const routeTree = rootRoute.addChildren([
     indexRoute,
-    lobbyRoute,
+    roomRoute,
     authPlayerRoute
 ])

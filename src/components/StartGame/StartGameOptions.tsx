@@ -1,14 +1,16 @@
 // src/components/StartGameOptions.tsx
 import { useNavigate } from "@tanstack/react-router";
 import ButtonOptions from "./ButtonOptions";
-import { Trophy, PlusCircle, Search } from "lucide-react";
+import { Trophy, PlusCircle, Search, LogIn } from "lucide-react";
+import { useState } from "react";
+import RoomCreateModal from "../Modal/CreateRoomModal";
+import RoomJoinModal from "../Modal/JoinRoomModal";
 
 const StartGameOptions = () => {
+  const [open, setOpen] = useState(false);
+  const [openJoin, setOpenJoin] = useState(false);
 const navigate = useNavigate();
 
-const goRoom = () =>{
-  navigate({to : '/lobby'})
-}
 
   return (
     <div className="w-full flex flex-wrap gap-3 sm:gap-4 items-center justify-center">
@@ -22,8 +24,8 @@ const goRoom = () =>{
         Ver Ranking
       </ButtonOptions>
 
-      <ButtonOptions
-        onClick={goRoom}
+       <ButtonOptions
+        onClick={() => setOpen(true)}
         leftIcon={<PlusCircle className="w-5 h-5" />}
         variant="primary"
         size="lg"
@@ -32,14 +34,37 @@ const goRoom = () =>{
       </ButtonOptions>
 
       <ButtonOptions
-        onClick={() => alert("Buscar sala")}
-        leftIcon={<Search className="w-5 h-5" />}
-        variant="ghost"
+        onClick={() => setOpenJoin(true)}
+        leftIcon={<LogIn className="w-5 h-5" />}
+        variant="primary"
         size="lg"
-        className="ring-1 ring-white/10"
       >
-        Buscar Sala
+        Unirme a sala
       </ButtonOptions>
+
+
+      <RoomCreateModal
+          open={open}
+          onClose={() => setOpen(false)}
+          onCreated={(room) => {
+            // si tu API devuelve { id } o { code }, puedes navegar:
+            // navigate({ to: "/rooms/$id", params: { id: String(room.id) } });
+            // o:
+            // navigate({ to: "/room/$code", params: { code: String(room.code) } });
+            console.log("Sala creada:", room);
+          }}
+      />
+
+      <RoomJoinModal
+          open={openJoin}
+          onClose={() => setOpenJoin(false)}
+          onJoined={(room) => {
+            console.log("Entré a la sala:", room);
+            // navigate({ to: "/room/$code", params: { code: String(room.code) } });
+          }}
+      />
+
+
     </div>
   );
 };

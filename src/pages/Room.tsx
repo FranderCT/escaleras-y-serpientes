@@ -2,8 +2,6 @@ import TopGlobals from "../components/Lobby/TopGlobals";
 import type { Player, Player1 } from "../models/Player";
 import binariosFoto from "../assets/binariosFoto.png";
 import PlayerHost from "../components/Lobby/RoomInfo/PlayerHost";
-import RoomCode from "../components/Lobby/RoomInfo/RoomCode";
-import type { Room } from "../models/Room";
 import ListPlayers from "../components/ListPlayers/ListPlayers";
 
 const playersData: Player1[] = [
@@ -16,7 +14,7 @@ const playersData: Player1[] = [
 
 const playerhost: Player = { Id: 1, name: "Frander", TurnOrder: 1, Position: 5, Wins: 3 };
 
-const roomCode : Room = {IdRoom: 1, Code: "ABC-123"}
+
 
 const playerssData: Player1[] = [
   { Id: 1, NamePlayer: "Frander", Wins: 3 },
@@ -31,7 +29,7 @@ const playerssData: Player1[] = [
 ];
 
 
-export default function Lobby() {
+export default function Room() {
   return (
     <main className="min-h-screen bg-[#0e0f13] text-white flex items-center justify-center">
       <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
@@ -58,7 +56,7 @@ export default function Lobby() {
         {/* Info de la sala / Host */}
         <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 shadow-2xl shadow-indigo-900/10 flex flex-col md:flex-row items-center justify-between gap-4">
             <PlayerHost player={playerhost} />
-            <RoomCode room={roomCode} />
+            
         </section>
 
         <section className="rounded-2xl w-full max-w-5xl px-4 sm:px-6 border border-white/10 bg-white/5  lg:px- py-3 flex flex-col items-center justify-center">
