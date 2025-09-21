@@ -3,7 +3,9 @@ import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import Modal from "./Modal";
 import ButtonOptions from "../StartGame/ButtonOptions";
-import { useJoinRoom } from "../../Hooks/RoomHooks";
+import { useJoinRooms } from "../../Hooks/RoomHooks";
+import { ensureStarted, joinSignalRGroup } from "../../signalRConnection";
+import { useGetPlayer } from "../../Hooks/PlayerHooks";
 
 type Props = {
   open: boolean;
@@ -12,8 +14,8 @@ type Props = {
 };
 
 export default function RoomJoinModal({ open, onClose, onJoined }: Props) {
-  const joinMutation = useJoinRoom();
-
+  const joinMutation = useJoinRooms();
+  const player = useGetPlayer()
   
   const form = useForm({
     defaultValues: { code: "" },
@@ -21,8 +23,18 @@ export default function RoomJoinModal({ open, onClose, onJoined }: Props) {
       const raw = (value.code ?? "").trim();
       const codeNum = Number(raw); 
       const res = await joinMutation.mutateAsync({ code: codeNum });
-      console.log(value.code)
+      const conn = await ensureStarted();
+
+      // toma el grupo correcto y un nombre seguro
+      const group = res.name ?? String(res.code); // fallback por si algún día cambias el contrato
+      const userName =
+        player.UserPlayer?.name ??
+        player.UserPlayer ??
+        'Anónimo';
+
+      const messaje = await conn.invoke('JoinRoom', group, userName);
       onJoined?.(res);
+      console.log(messaje);
       onClose();
     },
   });

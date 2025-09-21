@@ -27,7 +27,7 @@ export const useJoinRoom = () =>{
 
     const mutation = useMutation({
         mutationKey : ['room', 'join'],
-        mutationFn : joinRoom,
+        mutationFn : joinRooms,
         onSuccess: (res) =>{
             console.log('Entraste al room', res);
             qc.invalidateQueries({queryKey: ['room', 'current']});
@@ -46,8 +46,8 @@ export function useJoinRooms() {
     mutationKey: ["room", "join"],
     mutationFn: async (payload: { code: number }) => {
       const room: Room = await joinRooms(payload);
-      await ensureStarted();
-      await joinSignalRGroup(String(room.code));
+      // await ensureStarted();
+      // await joinSignalRGroup(String(room.code));
       return room;
     },
     onSuccess: (res) => {
