@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { createRoom, joinRooms } from "../Services/RoomsServices";
+import { createRoom, getRoomByCode, joinRooms } from "../Services/RoomsServices";
 import type { Room } from "../models/Room";
 
 export const useCraeteRoom = () =>{
@@ -56,3 +56,13 @@ export function useJoinRooms() {
     onError: (err) => console.error(err),
   });
 }
+
+export const useGetRoomByCode = (code?: number) => {
+  const { data: Room, isLoading, error } = useQuery<Room>({
+    queryKey: ["room", code],
+    queryFn: () => getRoomByCode(code!),
+    enabled: typeof code === "number" && Number.isFinite(code),
+  });
+
+  return { Room, isLoading, error };
+};

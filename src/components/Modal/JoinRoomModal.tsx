@@ -1,57 +1,61 @@
 // src/components/Rooms/RoomJoinModal.tsx
-import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import Modal from "./Modal";
 import ButtonOptions from "../StartGame/ButtonOptions";
 import { useJoinRooms } from "../../Hooks/RoomHooks";
-import { ensureStarted } from "../../signalRConnection";
+import { joinSignalRRoom } from "../../signalRConnection";
 import { useGetPlayer } from "../../Hooks/PlayerHooks";
+import { useNavigate } from "@tanstack/react-router";
+import { roomByCodeRoute } from "../../Routes";
+
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  onJoined?: (room: any) => void; // opcional: navegar o mostrar toast
+  onJoined?: (room: any) => void;
 };
 
 export default function RoomJoinModal({ open, onClose, onJoined }: Props) {
   const joinMutation = useJoinRooms();
-  const player = useGetPlayer()
-  
+  const player = useGetPlayer();
+  const userName = player.UserPlayer?.name ?? "Player";
+  const navigate = useNavigate();
+
   const form = useForm({
     defaultValues: { code: "" },
     onSubmit: async ({ value }) => {
       const raw = (value.code ?? "").trim();
-      const codeNum = Number(raw); 
+      const digits = raw.replace(/\D/g, "").slice(0, 4);
+      if (digits.length !== 4) {
+        // feedback rápido
+        form.setFieldMeta("code", (m) => ({
+          ...m,
+          errors: ["Debe ser un código de 4 dígitos"],
+        }));
+        return;
+      }
+      const codeNum = Number(digits);
+
       const res = await joinMutation.mutateAsync({ code: codeNum });
-      const conn = await ensureStarted();
 
-      // toma el grupo correcto y un nombre seguro
-      const group = res.name ?? String(res.code); // fallback por si algún día cambias el contrato
-      const userName =
-        player.UserPlayer?.name ??
-        player.UserPlayer ??
-        'Anónimo';
-
-      const messaje = await conn.invoke('JoinRoom', group, userName);
+      const groupToJoin = String(res.name ?? res?.code ?? codeNum);
+      await joinSignalRRoom(groupToJoin, userName);
+      //useSessionStore.getState().setCurrentRoom(groupToJoin);
+      
       onJoined?.(res);
-      console.log(messaje);
       onClose();
+
+      navigate({
+        to: roomByCodeRoute.to,
+        params: { code: String(codeNum) },
+      });
     },
   });
 
-  useEffect(() => {
-    if (!open) form.reset();
-  }, [open]);
-
   return (
-    <Modal
-      open={open}
-      onClose={() => {
-        if (!joinMutation.isPending) onClose();
-      }}
-      title="Unirse a una sala"
-      footer={
-        <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting]}>
+    <Modal open={open} onClose={onClose} title="Unirse a sala"
+    footer={
+      <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting]}>
           {([canSubmit, isSubmitting]) => (
             <div className="flex items-center gap-3">
               <ButtonOptions
@@ -65,62 +69,48 @@ export default function RoomJoinModal({ open, onClose, onJoined }: Props) {
                 onClick={() => form.handleSubmit()}
                 disabled={!canSubmit || isSubmitting}
               >
-                {isSubmitting ? "Uniendo…" : "Unirme"}
+                {isSubmitting ? "Creando…" : "Buscar"}
               </ButtonOptions>
             </div>
           )}
         </form.Subscribe>
-      }
+    }
     >
       <form
         onSubmit={(e) => {
           e.preventDefault();
           form.handleSubmit();
         }}
-        className="flex flex-col gap-3"
+        className="space-y-4"
+
       >
-        <form.Field
-          name="code"
-          validators={{
-            onChange: ({ value }) => {
-              const v = (value ?? "").trim();
-              if (v.length !== 4) return "Debe tener 4 dígitos.";
-              const n = Number(v);
-              if (!Number.isInteger(n) || n < 1000 || n > 9999) {
-                return "Código válido: 1000–9999.";
-              }
-              return undefined;
-            },
-          }}
-        >
-          {(field) => (
+        {form.Field({
+          name: "code",
+          children: (field) => (
             <div className="space-y-1">
-              <label className="block text-sm text-white/80" htmlFor="join-code">
-                Código de la sala
-              </label>
               <input
-                id="join-code"
-                autoFocus
                 inputMode="numeric"
+                type="text"
                 pattern="\d{4}"
                 maxLength={4}
                 className="w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-white outline-none focus:ring-2 focus:ring-white/20"
                 placeholder="Ej: 1234"
                 value={field.state.value ?? ""}
-                onChange={(e) => field.handleChange(e.target.value)} // ← sin only4Digits
+                onChange={(e) =>
+                  field.handleChange(e.target.value.replace(/\D/g, "").slice(0, 4))
+                }
                 onBlur={field.handleBlur}
-                aria-invalid={field.state.meta.errors.length > 0}
-                aria-describedby="code-help"
               />
               {field.state.meta.errors.length > 0 && (
-                <p className="text-xs text-red-400">{field.state.meta.errors[0]}</p>
+                <p className="text-xs text-red-400">
+                  {field.state.meta.errors[0]}
+                </p>
               )}
-              <p id="code-help" className="text-xs text-white/50">
-                {(field.state.value?.length ?? 0)}/4
-              </p>
             </div>
-          )}
-        </form.Field>
+          ),
+        })}
+
+        
       </form>
     </Modal>
   );

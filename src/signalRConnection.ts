@@ -56,6 +56,20 @@ export async function joinSignalRRoom(roomId: string, playerName: string): Promi
   joinedRooms.set(roomId, playerName);
 }
 
+// signalRConnection.ts
+export type ActionDetailsDtoTS = {
+  type: string;
+  payload?: any;
+};
+
+export async function performGameActionSignalR(
+  roomId: string,
+  actionDetails: ActionDetailsDtoTS
+): Promise<void> {
+  const conn = await ensureStarted();
+  await conn.invoke('PerformGameAction', roomId, actionDetails);
+}
+
 export async function leaveSignalRRoom(roomId: string): Promise<void> {
   const conn = await ensureStarted();
   await conn.invoke('LeaveRoom', roomId);

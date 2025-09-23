@@ -7,12 +7,20 @@ type PlayerItem = { id: number; name: string; color: string };
 type Props = {
   rows?: number;
   cols?: number;
-  players?: PlayerItem[]; // si no se pasa, usa 3 por defecto
+  players?: PlayerItem[];
   jumps?: JumpMap;
   onWin?: (winner: PlayerItem) => void;
+
+  /** Controlado por servidor (tu backend) */
+  positions?: number[];                 // posiciones absolutas por jugador
+  onExternalDiceClick?: () => (void);     // dispara POST /turn
+  diceDisabled?: boolean;               // deshabilitar dado desde fuera
+  turnLabel?: string;                   // texto “Turno de: …”
+  externalDiceFace?: number;   // cara real 1..6
+  externalDiceSpinning?: boolean; // true mientras esperas DiceRolled
 };
 
-// Construye filas de ARRIBA hacia ABAJO numerando desde ABAJO-IZQUIERDA
+/** Construye filas de ARRIBA hacia ABAJO numerando desde ABAJO-IZQUIERDA */
 function buildBoardRows(rows: number, cols: number) {
   const rowsBottomUp: number[][] = [];
   let n = 1;
@@ -24,83 +32,93 @@ function buildBoardRows(rows: number, cols: number) {
   return rowsBottomUp.reverse();
 }
 
-// Dado interactivo con animación de “giro”
+/** Dado con animación; si hay onExternal → no calcula número local */
 function Dice({
   disabled,
-  onRoll,
+  onRollNumber,        // solo para modo local
+  onExternal,          // si viene => modo servidor
   label,
+  externalFace,        // NUEVO: cara real que viene del servidor
+  spinning,            // NUEVO: controla el “rodando…”
 }: {
   disabled?: boolean;
-  onRoll: (value: number) => void;
+  onRollNumber?: (value: number) => void;
+  onExternal?: () => void;
   label?: string;
+  externalFace?: number;  // 1..6
+  spinning?: boolean;     // true mientras esperas DiceRolled
 }) {
   const [face, setFace] = useState(1);
   const [rolling, setRolling] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
+  // si el padre actualiza la cara (modo servidor), muéstrala
+  useEffect(() => {
+    if (externalFace && externalFace >= 1 && externalFace <= 6) {
+      setFace(externalFace);
+    }
+  }, [externalFace]);
+
   const startRoll = async () => {
     if (rolling || disabled) return;
-    setRolling(true);
 
-    // animación de caras aleatorias
-    let t = 0;
+    // modo servidor: NO fijes cara final; solo gira y delega
+    if (onExternal) {
+      setRolling(true);
+      intervalRef.current = window.setInterval(() => {
+        setFace(1 + Math.floor(Math.random() * 6));
+      }, 70);
+
+      await onExternal();              // dispara POST /turn
+
+      // el stop lo hace el padre al llegar DiceRolled (spinning=false)
+      return;
+    }
+
+    // modo local: sí decide cara final
+    setRolling(true);
     intervalRef.current = window.setInterval(() => {
       setFace(1 + Math.floor(Math.random() * 6));
-      t += 1;
     }, 70);
 
-    // duración ~700ms
     await new Promise((r) => setTimeout(r, 700));
-
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
 
-    // cara final definitiva
     const final = 1 + Math.floor(Math.random() * 6);
     setFace(final);
-
-    // pequeña pausa para “sensación”
     await new Promise((r) => setTimeout(r, 120));
-
-    onRoll(final);
+    onRollNumber?.(final);
     setRolling(false);
   };
 
-  // limpiar intervalo si desmonta
+  // detener giro cuando el padre diga que ya no está “spinning”
   useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
+    if (!onExternal) return; // solo aplica en modo servidor
+    if (spinning === false && intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      setRolling(false);
+    }
+  }, [spinning, onExternal]);
 
   return (
     <div className="flex flex-col items-end gap-2">
       <button
         onClick={startRoll}
-        disabled={disabled || rolling}
+        disabled={disabled || rolling || spinning}
         className={`relative select-none rounded-2xl border border-white/10 bg-white/10 backdrop-blur text-white 
                     shadow-2xl shadow-indigo-900/20 transition-all
-                    ${disabled ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:scale-95"}
-                    `}
-        style={{
-          width: 72,
-          height: 72,
-          boxShadow:
-            "0 10px 25px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.15)",
-        }}
+                    ${disabled || rolling || spinning ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:scale-95"}`}
+        style={{ width: 72, height: 72, boxShadow: "0 10px 25px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.15)" }}
         aria-label="Tirar dado"
-        title={disabled ? "Esperando…" : "Tirar dado"}
       >
-        <div
-          className="absolute inset-0 grid place-items-center text-3xl font-extrabold"
-          style={{ textShadow: "0 2px 8px rgba(0,0,0,.35)" }}
-        >
+        <div className="absolute inset-0 grid place-items-center text-3xl font-extrabold" style={{ textShadow: "0 2px 8px rgba(0,0,0,.35)" }}>
           {face}
         </div>
 
-        {/* puntitos decorativos tipo dado */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-white/90" />
           <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-white/90" />
@@ -108,21 +126,19 @@ function Dice({
           <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-white/90" />
         </div>
 
-        {/* halo */}
         <div
-          className={`absolute -inset-1 rounded-2xl blur-lg transition-opacity ${
-            rolling ? "opacity-60" : "opacity-0"
-          }`}
+          className={`absolute -inset-1 rounded-2xl blur-lg transition-opacity ${(rolling || spinning) ? "opacity-60" : "opacity-0"}`}
           style={{ background: "conic-gradient(from 180deg,#60a5fa33,#a78bfa33,#34d39933)" }}
         />
       </button>
 
       <div className="text-xs text-white/80">
-        {label ? label : rolling ? "Rodando..." : ""}
+        {label ?? (rolling || spinning ? "Rodando..." : "")}
       </div>
     </div>
   );
 }
+
 
 export default function SnakesLaddersBoard({
   rows = 5,
@@ -130,90 +146,106 @@ export default function SnakesLaddersBoard({
   players: playersProp,
   jumps: jumpsProp,
   onWin,
+
+  positions: positionsExternal,
+  onExternalDiceClick,
+  diceDisabled = false,
+  turnLabel,
+  externalDiceFace,
+  externalDiceSpinning,
 }: Props) {
   const LAST = rows * cols;
 
-  const defaultPlayers: PlayerItem[] = useMemo(
-    () => [
-      { id: 0, name: "Samuel",  color: "#1B6DF5" },
-      { id: 1, name: "Jose",    color: "#141032" },
-      { id: 2, name: "Frander", color: "#564ba8" },
-    ],
-    []
-  );
+  const players = playersProp ?? [];
 
-  const players = playersProp && playersProp.length ? playersProp : defaultPlayers;
+  // Si no hay jugadores aún, render “loading”
+  if (players.length === 0) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/80">
+        Esperando a que inicie la partida…
+      </div>
+    );
+  }
 
   const jumps: JumpMap = {
-    3: 8,  // escalera
-    11: 2, // serpiente
-    16: 21,
-    24: 13,
-    26: 22,
-    29: 19,
+    3: 22, 11: 2,
     ...jumpsProp,
   };
 
   const boardRows = useMemo(() => buildBoardRows(rows, cols), [rows, cols]);
 
-  const [positions, setPositions] = useState<number[]>(players.map(() => 1));
-  const [turn, setTurn] = useState(0);
-  const [rolling, setRolling] = useState(false);
+  // Estado local SOLO si no vienen positions externas
+  const [localPositions, setLocalPositions] = useState<number[]>(players.map(() => 1));
+  const [turnLocal, setTurnLocal] = useState(0);
+  const [rollingLocal, setRollingLocal] = useState(false);
 
-  const animateMove = async (target: number) => {
-    const start = positions[turn];
-
-    for (let step = start + 1; step <= target; step++) {
-      await new Promise((r) => setTimeout(r, 140));
-      setPositions((prev) => {
-        const copy = [...prev];
-        copy[turn] = step;
-        return copy;
+  // Mantener localPositions sincronizado con el número de jugadores
+  useEffect(() => {
+    if (!positionsExternal) {
+      setLocalPositions((prev) => {
+        if (prev.length === players.length) return prev;
+        // Re-crear manteniendo el primer valor si existía
+        const base = players.map((_, i) => prev[i] ?? 1);
+        return base;
       });
+      setTurnLocal((t) => (t >= players.length ? 0 : t));
     }
-  };
+  }, [players.length, positionsExternal]);
 
-  const handleRoll = async (dice: number) => {
-    if (rolling) return;
-    setRolling(true);
+  // Si llegan posiciones desde servidor, usamos esas
+  const positions = positionsExternal ?? localPositions;
 
-    const start = positions[turn];
-    let target = start + dice;
-    if (target > LAST) target = LAST;
-
-    // animación paso a paso
-    await animateMove(target);
-
-    // aplicar serpiente / escalera
-    const after = jumps[target] ?? target;
-    if (after !== target) {
-      await new Promise((r) => setTimeout(r, 180));
-      setPositions((prev) => {
-        const copy = [...prev];
-        copy[turn] = after;
-        return copy;
-      });
-    }
-
-    if (after === LAST) {
-      onWin?.(players[turn]);
-    } else {
-      setTurn((t) => (t + 1) % players.length);
-    }
-    setRolling(false);
-  };
-
-  // jugadores por celda (para render directo dentro de la celda)
+  // players por celda (nota: posición 0 no pinta en el tablero → “fuera”)
   const playersByCell = useMemo(() => {
     const map = new Map<number, number[]>();
     positions.forEach((pos, i) => {
-      map.set(pos, [...(map.get(pos) ?? []), i]);
+      if (pos > 0) map.set(pos, [...(map.get(pos) ?? []), i]);
     });
     return map;
   }, [positions]);
 
   const someoneWon = positions.some((p) => p === LAST);
-  const currentName = players[turn]?.name ?? "";
+
+  // ——— Lógica local (solo demo sin servidor) ———
+  const animateMove = async (target: number) => {
+    const start = localPositions[turnLocal];
+    for (let step = start + 1; step <= target; step++) {
+      await new Promise((r) => setTimeout(r, 140));
+      setLocalPositions((prev) => {
+        const copy = [...prev];
+        copy[turnLocal] = step;
+        return copy;
+      });
+    }
+  };
+
+  const handleRollLocal = async (dice: number) => {
+    if (rollingLocal) return;
+    setRollingLocal(true);
+
+    const start = localPositions[turnLocal];
+    let target = start + dice;
+    if (target > LAST) target = LAST;
+
+    await animateMove(target);
+
+    const after = jumps[target] ?? target;
+    if (after !== target) {
+      await new Promise((r) => setTimeout(r, 180));
+      setLocalPositions((prev) => {
+        const copy = [...prev];
+        copy[turnLocal] = after;
+        return copy;
+      });
+    }
+
+    if (after === LAST) {
+      onWin?.(players[turnLocal]);
+    } else {
+      setTurnLocal((t) => (t + 1) % players.length);
+    }
+    setRollingLocal(false);
+  };
 
   return (
     <div className="grid gap-4">
@@ -231,17 +263,19 @@ export default function SnakesLaddersBoard({
                 >
                   {p.name.charAt(0).toUpperCase()}
                 </span>
-                <span className="text-black">{p.name}:</span>
-                <span className="text-black">{positions[i]}</span>
+                <span className="text-white/90">{p.name}:</span>
+                <span className="text-white/70">{positions[i] ?? 0}</span>
               </span>
             ))}
           </div>
 
-          {/* Dado interactivo */}
           <Dice
-            disabled={rolling || someoneWon}
-            onRoll={handleRoll}
-            label={`Turno de: ${currentName}`}
+            disabled={onExternalDiceClick ? diceDisabled : rollingLocal || someoneWon}
+            onExternal={onExternalDiceClick}
+            onRollNumber={handleRollLocal}
+            label={turnLabel}
+            externalFace={externalDiceFace}       
+            spinning={externalDiceSpinning}
           />
         </div>
       </div>
@@ -270,7 +304,7 @@ export default function SnakesLaddersBoard({
               >
                 {cell}
 
-                {/* marca de salto */}
+                {/* Marca de serpiente/escalera */}
                 {isJump && (
                   <div
                     className={`absolute bottom-1.5 right-1.5 text-xs sm:text-sm font-bold ${
@@ -281,7 +315,7 @@ export default function SnakesLaddersBoard({
                   </div>
                 )}
 
-                {/* fichas apiladas dentro de la casilla con inicial */}
+                {/* Fichas apiladas dentro de la casilla */}
                 {here.length > 0 && (
                   <div className="absolute inset-0 flex items-center justify-center gap-1.5 sm:gap-2">
                     {here.map((pi) => (
@@ -306,11 +340,6 @@ export default function SnakesLaddersBoard({
             );
           })}
         </div>
-
-        <p className="mt-3 text-xs text-white/60">
-          Personaliza <code className="text-white/80">rows</code>,{" "}
-          <code className="text-white/80">cols</code> o <code className="text-white/80">jumps</code> según la sala.
-        </p>
       </div>
     </div>
   );

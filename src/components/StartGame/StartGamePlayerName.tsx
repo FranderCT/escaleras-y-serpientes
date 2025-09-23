@@ -15,3 +15,4 @@ const StartGamePlayerName = ({ player }: Props) => {
 };
 
 export default StartGamePlayerName;
+

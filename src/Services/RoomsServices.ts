@@ -26,3 +26,12 @@ export async function joinRooms(payload: { code: number }): Promise<Room> {
   console.log(data);
   return data;
 }
+
+export async function getRoomByCode (code : number) : Promise<Room>{
+    try{
+        const {data} = await apiAxios.get<Room>(`${BASE}/code/${code}`);
+        return data;
+    }catch(err){
+        return Promise.reject(err);
+    }
+}
