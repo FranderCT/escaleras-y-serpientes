@@ -86,6 +86,8 @@ export default function GameBoard() {
       const conn = getConnection();
 
       conn.on("GameStarted", (payload: any) => {
+        navigate({to:"/room/$code/game", params:{code:String(payload.roomCode)}});
+
         const ps: UIPlayer[] = (payload?.Players ?? []).map((p: any) => ({
           id: p.playerId ?? p.PlayerId,
           name: p.name ?? p.Name,
