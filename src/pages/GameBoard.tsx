@@ -10,7 +10,7 @@ import { useMessagesStore } from "../stores/messagesStore";
 import { useNavigate } from "@tanstack/react-router";
 
 
-type UIPlayer = { id: number; name: string; color: string; turnOrder: number };
+export type UIPlayer = { id: number; name: string; color: string; turnOrder: number };
 
 function colorFromName(name: string) {
   let hash = 0;
@@ -86,7 +86,6 @@ export default function GameBoard() {
       const conn = getConnection();
 
       conn.on("GameStarted", (payload: any) => {
-        navigate({to:"/room/$code/game", params:{code:String(payload.roomCode)}});
 
         const ps: UIPlayer[] = (payload?.Players ?? []).map((p: any) => ({
           id: p.playerId ?? p.PlayerId,
@@ -283,7 +282,8 @@ export default function GameBoard() {
           rows={5}
           cols={6}
           //  jugadores construidos desde el backend (no quemados)
-          players={players.map((p) => ({ id: p.id, name: p.name, color: p.color }))}
+          players={players.map((p) => ( 
+            { id: p.id, name: p.name, color: p.color }))}
           jumps={jumps}
           // posiciones dictadas por el servidor
           positions={positions}
@@ -307,13 +307,13 @@ export default function GameBoard() {
           {/* Lobby */}
           <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <h3 className="text-xl font-semibold mb-2">Lobby</h3>
-            <ul className="mt-4 space-y-1 max-h-64 overflow-y-auto pr-2">
+            <ul className="mt-4 space-y-1 max-h-64 overflow-y-auto pr-2 nice-scroll">
               {messages.map((message, index) => (
                 <li key={index}>{message}</li>
               ))}
             </ul>
           </section>
-          {/* (Opcional) Chat */}
+          {/* Chat */}
           {/* <section> ... </section> */}
         </div>
         

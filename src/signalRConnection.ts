@@ -64,7 +64,7 @@ export type ActionDetailsDtoTS = {
 
 export async function performGameActionSignalR(
   roomId: string,
-  actionDetails: ActionDetailsDtoTS
+  actionDetails?: ActionDetailsDtoTS
 ): Promise<void> {
   const conn = await ensureStarted();
   await conn.invoke('PerformGameAction', roomId, actionDetails);

@@ -1,5 +1,5 @@
 import TopGlobals from "../components/Lobby/TopGlobals";
-import type { Player, Player1 } from "../models/Player";
+import type { Player,  } from "../models/Player";
 import binariosFoto from "../assets/binariosFoto.png";
 import PlayerHost from "../components/Lobby/RoomInfo/PlayerHost";
 import ListPlayers from "../components/ListPlayers/ListPlayers";
@@ -8,16 +8,8 @@ import { roomByCodeRoute, roomGameRoute } from "../Routes";
 import { useMessagesStore } from "../stores/messagesStore";
 import { useNavigate } from "@tanstack/react-router";
 import { useInitGame } from "../Hooks/ResumeHooks";
-
-
-
-const playersData: Player1[] = [
-  { Id: 1, NamePlayer: "Frander", TurnOrder: 1, Position: 5, Wins: 3 },
-  { Id: 2, NamePlayer: "Brenda", TurnOrder: 2, Position: 10, Wins: 5 },
-  { Id: 3, NamePlayer: "Luis", TurnOrder: 3, Position: 2, Wins: 1 },
-  { Id: 4, NamePlayer: "Samuel", TurnOrder: 4, Position: 7, Wins: 2 },
-  { Id: 5, NamePlayer: "Katherine", TurnOrder: 5, Position: 8, Wins: 4 },
-];
+import { useEffect } from "react";
+import { ensureStarted, off, on } from "../signalRConnection";
 
 const playerhost: Player = { id: 1, name: "Frander", turnOrder: 1, position: 5, wins: 3 };
 
@@ -26,27 +18,47 @@ export default function RoomGame() {
   const { code } = roomByCodeRoute.useParams();
   const navigate = useNavigate();
   const initMutation = useInitGame();
+  const roomCodeNum = Number(code);
 
   const  onStart = async () => {
-    const roomCodeNum = Number(code);
     if (!Number.isFinite(roomCodeNum)) return;
     // 1) iniciar partida en backend
-    await initMutation.mutateAsync(roomCodeNum, {
-      onSuccess: () => {
-        // 2) redirigir al tablero
-        navigate({
-        to: roomGameRoute.to,
-        params: { code: String(roomCodeNum) }, // asegúrate de string
-      });
-      },
-    });
+    await initMutation.mutateAsync(roomCodeNum);
   };
 
-  const codeNum = Number(code)
   const { Room, isLoading, error } = useGetRoomByCode(
-    Number.isFinite(codeNum) ? codeNum : undefined
+    Number.isFinite(roomCodeNum) ? roomCodeNum : undefined
   )
+
+  const players: Player[] = Room?.roomPlayers?.map(rp => rp.player) ?? [];
   
+  useEffect(() => {
+  (async () => {
+    await ensureStarted();
+
+    // 1) registra handlers (una sola vez)
+    on("GameStarted", (payload: any) => {
+      // si tu backend manda roomCode, úsalo directamente
+      navigate({
+        to: roomGameRoute.to,
+        params: { code: String(payload.roomCode ?? roomCodeNum) },
+      });
+    });
+
+    // (opcionales para debug / lobby)
+    on("SystemMessage", (msg: string) => console.log("[SystemMessage]", msg));
+    on("PlayerJoined", (name: string) => console.log("[PlayerJoined]", name));
+    on("PlayerLeft", (name: string) => console.log("[PlayerLeft]", name));
+    })();
+
+    return () => {
+      off("GameStarted");
+      off("SystemMessage");
+      off("PlayerJoined");
+      off("PlayerLeft");
+    };
+  }, [Room?.name, navigate /*, Room?.name si usas name como groupId */]);
+
   // const data = await res.json();
   //   // Tu backend devuelve algo como: { roomId, roomCode, group, playersCount, capacity }
   //   // El GameHub usa el roomId como string de grupo (en tu caso estás usando room.Name en el servicio:
@@ -78,7 +90,7 @@ export default function RoomGame() {
 
           {/* Ranking (mismo look de tarjetas StartGame) */}
           <div className="flex-1 rounded-2xl border border-white/10 bg-white/5  to-transparent p-4 sm:p-6 shadow-2xl shadow-indigo-900/10">
-            <TopGlobals players={playersData} maxItems={10} />
+            <TopGlobals players={players} maxItems={10} />
           </div>
         </section>
 
@@ -119,7 +131,7 @@ export default function RoomGame() {
           {/* Lobby */}
           <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <h3 className="text-xl font-semibold mb-2">Lobby</h3>
-            <ul className="mt-4 space-y-1">
+            <ul className="mt-4 space-y-1 overflow-y-auto pr-2 nice-scroll">
               {messages.map((message, index) => (
                 <li key={index}>{message}</li>
               ))}
