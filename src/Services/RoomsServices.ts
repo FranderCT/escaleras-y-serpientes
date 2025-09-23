@@ -35,3 +35,7 @@ export async function getRoomByCode (code : number) : Promise<Room>{
         return Promise.reject(err);
     }
 }
+
+export async function deletePlayer (code : number, id : number): Promise<void>{
+  await apiAxios.delete(`${code}/players/${id}`)
+}

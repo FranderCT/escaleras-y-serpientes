@@ -21,5 +21,5 @@ export async function getPlayer(): Promise<Player> {
     console.error(err);
     return Promise.reject(err);
   }
-  
 }
+

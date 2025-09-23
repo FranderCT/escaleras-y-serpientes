@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import Modal from "./Modal";
 import { useCraeteRoom } from "../../Hooks/RoomHooks";
 import { RoomInitialState } from "../../models/Room";
+import { toast } from "react-toastify";
 
 type Props = {
   open: boolean;
@@ -14,8 +15,9 @@ type Props = {
   onCreated?: (room: any) => void; // opcional, por si quieres navegar al crear
 };
 
-export default function RoomCreateModal({ open, onClose, onCreated }: Props) {
+export default function RoomCreateModal({ open, onClose, onCreated}: Props) {
   const createRoom = useCraeteRoom();
+
 
   const form = useForm({
     defaultValues: RoomInitialState,
@@ -23,8 +25,16 @@ export default function RoomCreateModal({ open, onClose, onCreated }: Props) {
       const res = await createRoom.mutateAsync(value);
       onCreated?.(res);
       onClose();
+      toast.success(`Sala creada, su código es: ${res.code}`, {
+        position: "top-center",
+        className: "text-xl font-bold text-center", 
+        autoClose: 9000,
+      });
+      
     },
   });
+
+
 
   
   useEffect(() => {
@@ -97,7 +107,7 @@ export default function RoomCreateModal({ open, onClose, onCreated }: Props) {
             </div>
           )}
         </form.Field>
-      </form>
+      </form> 
     </Modal>
   );
 }

@@ -3,13 +3,14 @@ import type { Player,  } from "../models/Player";
 import binariosFoto from "../assets/binariosFoto.png";
 import PlayerHost from "../components/Lobby/RoomInfo/PlayerHost";
 import ListPlayers from "../components/ListPlayers/ListPlayers";
-import { useGetRoomByCode } from "../Hooks/RoomHooks";
+import { useDeletePlayer, useGetRoomByCode } from "../Hooks/RoomHooks";
 import { roomByCodeRoute, roomGameRoute } from "../Routes";
 import { useMessagesStore } from "../stores/messagesStore";
 import { useNavigate } from "@tanstack/react-router";
 import { useInitGame } from "../Hooks/ResumeHooks";
 import { useEffect } from "react";
 import { ensureStarted, off, on } from "../signalRConnection";
+import { useGetPlayer } from "../Hooks/PlayerHooks";
 
 const playerhost: Player = { id: 1, name: "Frander", turnOrder: 1, position: 5, wins: 3 };
 
@@ -19,12 +20,23 @@ export default function RoomGame() {
   const navigate = useNavigate();
   const initMutation = useInitGame();
   const roomCodeNum = Number(code);
+  const {UserPlayer} = useGetPlayer()
+  const playerID = Number(UserPlayer?.id)
 
   const  onStart = async () => {
     if (!Number.isFinite(roomCodeNum)) return;
     // 1) iniciar partida en backend
-    await initMutation.mutateAsync(roomCodeNum);
+    //await initMutation.mutateAsync(roomCodeNum);
+    navigate({
+        to: roomGameRoute.to,
+        params: { code: String( roomCodeNum) },
+      });
   };
+
+  const onLeeave = () =>{
+    useDeletePlayer(roomCodeNum, playerID);
+    navigate({to: '/startgame'});
+  }
 
   const { Room, isLoading, error } = useGetRoomByCode(
     Number.isFinite(roomCodeNum) ? roomCodeNum : undefined
@@ -106,15 +118,29 @@ export default function RoomGame() {
                 Jugadores en la Sala
             </span>
             <ListPlayers room={Room} />
+            
+            <div className="flex flex-row-reverse gap-6">
+              <button
+              onClick={onStart}
+              disabled={initMutation.isPending}
+              className="px-6 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 
+                        text-white font-semibold text-lg shadow-lg shadow-emerald-700/30
+                        hover:brightness-110 active:scale-95 transition disabled:opacity-60"
+            >
+              {initMutation.isPending ? "Entrando…" : "Entrar al juego"}
+            </button>
+
             <button
-            onClick={onStart}
-            disabled={initMutation.isPending}
-            className="px-6 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 
-                       text-white font-semibold text-lg shadow-lg shadow-emerald-700/30
-                       hover:brightness-110 active:scale-95 transition disabled:opacity-60"
-          >
-            {initMutation.isPending ? "Iniciando…" : "Iniciar Partida"}
-          </button>
+              onClick={onLeeave}
+              disabled={initMutation.isPending}
+              className="px-6 py-4 rounded-xl bg-gradient-to-r from-[#222] to-[#000] 
+                        text-white font-semibold text-lg shadow-lg hover:shadow-red-700/30x`
+                        hover:brightness-110 active:scale-95 transition disabled:opacity-60"
+            >
+              {initMutation.isPending ? "Saliendo del juego" : "Salir del Juego"}
+            </button>
+          </div>
+
 
           {/* opcional: feedback de error */}
           {initMutation.isError && (
@@ -122,7 +148,6 @@ export default function RoomGame() {
               {String(initMutation.error)}
             </p>
           )}
-            
         </section>
 
         <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">

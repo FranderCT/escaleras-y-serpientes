@@ -13,7 +13,7 @@ const InputName = () => {
     onSubmit: async ({ value }) => {
       try {
         await createPlayerMutation.mutateAsync(value);
-        navigate({ to: "/" });
+        navigate({ to: "/startgame" });
       } catch (err) {
         console.error(err);
       }

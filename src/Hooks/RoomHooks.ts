@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { createRoom, getRoomByCode, joinRooms } from "../Services/RoomsServices";
+import { createRoom, deletePlayer, getRoomByCode, joinRooms } from "../Services/RoomsServices";
 import type { Room } from "../models/Room";
 
 export const useCraeteRoom = () =>{
@@ -12,6 +12,7 @@ export const useCraeteRoom = () =>{
         onSuccess: (res) =>{
             console.log('Room creada', res);
             qc.invalidateQueries({queryKey: ['room']});
+            sessionStorage.setItem('rol', "HOST");
         },
         onError : (err) =>{
             console.error(err)
@@ -66,3 +67,22 @@ export const useGetRoomByCode = (code?: number) => {
 
   return { Room, isLoading, error };
 };
+
+export const useDeletePlayer = (code: number, id:number) => {
+  const qc = useQueryClient();
+
+  const mutation = useMutation({
+    mutationKey: ["room", code, "delete-player", id],
+    mutationFn: (id: number) => deletePlayer(code, id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["player"] });
+    },
+    onError: (err) => {
+      console.error(err);
+    },
+  });
+
+  return mutation;
+};
+
+

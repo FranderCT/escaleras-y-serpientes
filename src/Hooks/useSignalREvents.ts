@@ -28,6 +28,7 @@
                 push(`[TURN] Turno #${turnOrder}. ${info}`.trim());
             });
             onHub("PlayerLeft", (name: string) => push(`[LEFT] ${name} salió de la sala`));
+
             onHub("GameStarted", (payload: any) => {
                 const players = payload?.players
                 ? Array.from(payload.players).map((x: any) => x.name ?? x.Player?.Name ?? "Jugador")

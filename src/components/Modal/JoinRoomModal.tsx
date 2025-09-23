@@ -7,6 +7,7 @@ import { joinSignalRRoom } from "../../signalRConnection";
 import { useGetPlayer } from "../../Hooks/PlayerHooks";
 import { useNavigate } from "@tanstack/react-router";
 import { roomByCodeRoute } from "../../Routes";
+import { useSessionStore } from "../../stores/sessionStore";
 
 
 type Props = {
@@ -40,7 +41,7 @@ export default function RoomJoinModal({ open, onClose, onJoined }: Props) {
 
       const groupToJoin = String(res.name ?? res?.code ?? codeNum);
       await joinSignalRRoom(groupToJoin, userName);
-      //useSessionStore.getState().setCurrentRoom(groupToJoin);
+      useSessionStore.getState().setCurrentRoom(groupToJoin);
       
       onJoined?.(res);
       onClose();

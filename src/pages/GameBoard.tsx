@@ -4,10 +4,11 @@ import { roomByCodeRoute, roomGameRoute } from "../Routes";
 import { useGetPlayer } from "../Hooks/PlayerHooks";
 import { useGetRoomByCode } from "../Hooks/RoomHooks";
 import { useInitGame, usePlayTurn } from "../Hooks/ResumeHooks";
-import { ensureStarted, getConnection, joinSignalRRoom } from "../signalRConnection";
+import { ensureStarted, getConnection, joinSignalRRoom, leaveSignalRRoom } from "../signalRConnection";
 import SnakesLaddersBoard from "../components/GameBoard/SnakeLadderBoard";
 import { useMessagesStore } from "../stores/messagesStore";
 import { useNavigate } from "@tanstack/react-router";
+import { useSessionStore } from "../stores/sessionStore";
 
 
 export type UIPlayer = { id: number; name: string; color: string; turnOrder: number };
@@ -204,6 +205,7 @@ export default function GameBoard() {
       onError: () => setDiceSpinning(false),
     });
     await joinSignalRRoom(groupToJoin, userName);
+    //useSessionStore.getState().setCurrentRoom(groupToJoin);
     // ENVÍO DE LA ACCIÓN AL HUB
     // await performGameActionSignalR(String(groupToJoin), {
     //   type: 'DiceRolled',
@@ -222,7 +224,16 @@ export default function GameBoard() {
     const roomCodeNum = Number(code);
     if (!Number.isFinite(roomCodeNum)) return;
 
-    initMutation.mutateAsync(roomCode)
+    initMutation.mutateAsync(roomCode);
+    await joinSignalRRoom(groupToJoin, userName);
+  };
+
+  const  onLeave = async () => {
+    const roomCodeNum = Number(code);
+    if (!Number.isFinite(roomCodeNum)) return;
+
+    navigate({ to: roomByCodeRoute.to, params: { code: String(roomCode)}})
+    await leaveSignalRRoom(groupToJoin);
   };
 
   // 7) UI
@@ -254,19 +265,19 @@ export default function GameBoard() {
     <main className="min-h-screen bg-[#0e0f13] text-white flex items-center justify-center">
       <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button
-            onClick={() => { onInit(); }}
-            //disabled={initMutation.isPending}
-            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10"
-          >
-            {initMutation.isPending ? "Iniciando…" : "Iniciar partida"}
-          </button>
+            <button
+              onClick={() => { onInit(); }}
+              disabled={players.length < 2 || initMutation.isPending}
+              className={`px-4 py-2 rounded-xl border border-white/10
+                ${players.length < 2 || initMutation.isPending
+                  ? "bg-white/5 text-white/40 cursor-not-allowed"
+                  : "bg-white/10 hover:bg-white/15"}`}
+            >
+              {initMutation.isPending ? "Iniciando…" : "Iniciar partida"}
+            </button>
           
           <button
-            onClick={() => { navigate({
-              to: roomByCodeRoute.to,
-              params: { code: String(roomCode) },
-            }); }}
+            onClick={() => { onLeave() }}
             //disabled={initMutation.isPending}
             className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10"
           >

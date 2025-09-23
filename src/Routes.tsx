@@ -10,11 +10,7 @@ export const rootRoute = createRootRoute();
 export const indexRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/',
-    component: StartGame,
-    beforeLoad: () => {
-    const token = localStorage.getItem('token');
-    if (!token) throw redirect({ to: '/auth' });
-  },
+    component: AuthPlayer,
 });
 
 export const roomRoute = createRoute({
@@ -22,7 +18,7 @@ export const roomRoute = createRoute({
   path: 'room',
   beforeLoad: () => {
     const token = localStorage.getItem('token');
-    if (!token) throw redirect({ to: '/auth' });
+    if (!token) throw redirect({ to: '/' });
   },
 });
 
@@ -32,15 +28,15 @@ export const roomByCodeRoute = createRoute({
   component: RoomGame,
   beforeLoad: () => {
     const token = localStorage.getItem('token');
-    if (!token) throw redirect({ to: '/auth' });
+    if (!token) throw redirect({ to: '/' });
   },
 });
 
 
 export const authPlayerRoute = createRoute({
     getParentRoute : () =>rootRoute,
-    path: 'auth',
-    component: AuthPlayer
+    path: 'startgame',
+    component: StartGame
 })
 
 // export const resumeRoute = createRoute({
