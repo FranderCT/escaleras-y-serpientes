@@ -22,7 +22,7 @@ export default function RoomGame() {
   const roomCodeNum = Number(code);
   const {UserPlayer} = useGetPlayer()
   const playerID = Number(UserPlayer?.id)
-
+  const deleteMutation = useDeletePlayer(roomCodeNum, playerID);
   const  onStart = async () => {
     if (!Number.isFinite(roomCodeNum)) return;
     // 1) iniciar partida en backend
@@ -34,7 +34,7 @@ export default function RoomGame() {
   };
 
   const onLeeave = () =>{
-    useDeletePlayer(roomCodeNum, playerID);
+    deleteMutation.mutate()
     navigate({to: '/startgame'});
   }
 
@@ -109,7 +109,7 @@ export default function RoomGame() {
         
         {/* Info de la sala / Host */}
         <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 shadow-2xl shadow-indigo-900/10 flex flex-col md:flex-row items-center justify-between gap-4">
-            <PlayerHost player={playerhost} />
+            {UserPlayer && <PlayerHost player={UserPlayer} />}
             <span>Codigo de la Sala # {Room?.code}</span>
         </section>
 

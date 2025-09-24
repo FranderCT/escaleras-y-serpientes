@@ -68,21 +68,22 @@ export const useGetRoomByCode = (code?: number) => {
   return { Room, isLoading, error };
 };
 
-export const useDeletePlayer = (code: number, id:number) => {
+export const useDeletePlayer = (code: number, id: number) => {
   const qc = useQueryClient();
 
   const mutation = useMutation({
     mutationKey: ["room", code, "delete-player", id],
-    mutationFn: (id: number) => deletePlayer(code, id),
+    mutationFn: () => deletePlayer(code, id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["player"] });
+      console.log(`Jugador ${id} eliminado de la sala ${code}`);
+      // invalidas el cache de los jugadores de la sala
+      qc.invalidateQueries({ queryKey: ["players", code] });
     },
     onError: (err) => {
-      console.error(err);
+      console.error("Error eliminando jugador:", err);
     },
   });
 
   return mutation;
 };
-
 

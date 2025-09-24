@@ -37,5 +37,5 @@ export async function getRoomByCode (code : number) : Promise<Room>{
 }
 
 export async function deletePlayer (code : number, id : number): Promise<void>{
-  await apiAxios.delete(`${code}/players/${id}`)
+  await apiAxios.delete(`${BASE}/${code}/players/${id}`)
 }
